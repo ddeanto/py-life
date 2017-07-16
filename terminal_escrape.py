@@ -1,6 +1,4 @@
-# run this in cmd line python terminal_escrape.py 2014 5 2017 6
-
-import sys # so we can access cmd line args
+import argparse
 import requests
 from bs4 import BeautifulSoup
 import urllib
@@ -12,32 +10,33 @@ def downloadIt(url, path):
     data = urllib.request.urlretrieve(url, path)
     print('saved to: ' + path)
 
-# print cmd line arguments - it's a list
-print(sys.argv)
-# sys.argv[0] is the name of the script and sys.argv[1], sys.argv[2], ... sys.argv[n] get the args
-beginYear = int(sys.argv[1])
-beginMonth = int(sys.argv[2])
-endYear = int(sys.argv[3])
-endMonth = int(sys.argv[4])
+month_choices = ("01","02","03","04","05","06","07","08","09","10","11","12")
 
+parser = argparse.ArgumentParser()
+parser.add_argument("b_y", type = int, choices = [2014, 2015, 2016, 2017], help = "Year to begin search")
+parser.add_argument("b_m", type = str, choices = month_choices, help = "Month to begin search")
+parser.add_argument("e_y", type = int, choices =  [2014, 2015, 2016, 2017], help = "Year to end search")
+parser.add_argument("e_m", type = str, choices = month_choices, help = "Month to end search")
+
+args = parser.parse_args()
+
+base_url = "http://terminalescape.blogspot.com/"
 pwd = os.getcwd()
-print 'pwd: ' + pwd
-base_url = 'http://terminalescape.blogspot.com/'
-months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+print ("Working Directory: " + pwd)
 
 dates = []
-for year in range(beginYear, endYear+1):
-    for month in range(1,12+1):
-        if year == beginYear and month < beginMonth:
+for year in range(args.b_y, args.e_y+1):
+    for month in month_choices:
+        if year == args.b_y and month < args.b_m:
             pass
-        elif year == endYear and month > endMonth:
-            pass 
-        else: 
-            dates.append([str(year), months[month-1]])
+        elif year == args.e_y and month > args.e_m:
+            pass
+        else:
+            dates.append([str(year), month])
 
 urls = []
 for post in dates:
-        url = base_url + post[0] + '/' + post[1]
+        url =  base_url + post[0] + '/' + post[1]
         urls.append(url)
 
 print('\ngetting links to blog posts...')
@@ -64,3 +63,5 @@ for link in links:
         zip_link = dl_link.replace('/f/', '/download/') + '?'
         path = pwd + '/' + re.search(r'/[0-9][0-9]/(.+)\.html', link).group(1)
         downloadIt(zip_link, path)
+
+print (links)
